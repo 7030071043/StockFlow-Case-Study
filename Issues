@@ -1,0 +1,91 @@
+Issue 1: No input validation
+Problem
+Accessing data['name'], data['sku'], etc. directly
+Missing or malformed JSON will cause runtime errors
+Impact
+API crashes with 500 errors
+Bad client experience
+Production instability
+Fix
+Validate required fields
+Return proper 400 errors
+
+ Issue 2: SKU uniqueness not enforced
+Problem
+No check if SKU already exists
+Business rule says SKU must be unique across platform
+Impact
+Duplicate SKUs → broken reporting, ordering, integrations
+Fix
+Enforce DB unique constraint
+Check before insert
+
+ Issue 3: Price type handling
+Problem
+price=data['price'] without validation
+Could be string, float, invalid
+Impact
+Floating-point precision issues
+Incorrect financial calculations
+Fix
+Use Decimal
+Validate numeric input
+
+ Issue 4: Products tied directly to warehouse
+Problem
+warehouse_id stored in Product
+But products can exist in multiple warehouses
+Impact
+Incorrect data model
+Cannot scale to multiple warehouses
+Fix
+Remove warehouse_id from Product
+Use Inventory as junction table
+
+ Issue 5: No transaction safety
+Problem
+Two commits
+If inventory insert fails, product is still created
+Impact
+Orphaned products
+Data inconsistency
+Fix
+Wrap in a single DB transaction
+
+ Issue 6: Initial quantity not validated
+Problem
+Negative or missing initial_quantity allowed
+Impact
+Negative stock in system
+Broken alerts and analytics
+Fix
+Validate quantity >= 0
+
+
+Questions for Product Team :-
+1.Can suppliers vary per warehouse?
+2.Should inventory be reserved vs available?
+3.Do we track batch/expiry?
+4.Can bundles be nested?
+5.Is pricing global or warehouse-specific?
+6.Multi-currency support needed?
+
+
+
+
+
+
+Edge Cases Handled :-
+Zero sales → no alert
+Zero avg daily sales → avoid division by zero
+Multiple warehouses → handled via inventory table
+Missing supplier → could return null supplier
+Large datasets → pagination can be added
+
+
+Explain Approach :-
+Correct data modeling
+Business rule awareness
+Defensive coding
+Scalable API design
+Clear assumptions & communication
